@@ -260,14 +260,25 @@ impl Event {
             .collect()
     }
 
-    #[must_use] pub fn is_valid_timestamp(&self, reject_future_seconds: Option<usize>) -> bool {
+    #[must_use] pub fn is_valid_timestamp(&self, reject_future_seconds: Option<usize>, reject_past_seconds: Option<usize>) -> bool {
+        let curr_time = unix_time();
         if let Some(allowable_future) = reject_future_seconds {
-            let curr_time = unix_time();
+            let delta = self.created_at - curr_time;
             // calculate difference, plus how far future we allow
-            if curr_time + (allowable_future as u64) < self.created_at {
-                let delta = self.created_at - curr_time;
+            if delta > (allowable_future as u64) {
                 debug!(
                     "event is too far in the future ({} seconds), rejecting",
+                    delta
+                );
+                return false;
+            }
+        }
+        if let Some(allowable_past) = reject_past_seconds {
+            let delta = self.created_at - curr_time;
+            // calculate difference, plus how far in the past we allow
+            if delta > (allowable_past as u64) {
+                debug!(
+                    "event is too far in the past ({} seconds), rejecting",
                     delta
                 );
                 return false;

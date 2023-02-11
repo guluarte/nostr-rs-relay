@@ -736,7 +736,7 @@ async fn nostr_server(
                                 let id_prefix:String = e.id.chars().take(8).collect();
                                 debug!("successfully parsed/validated event: {:?} (cid: {}, kind: {})", id_prefix, cid, e.kind);
                                 // check if the event is too far in the future.
-                                if e.is_valid_timestamp(settings.options.reject_future_seconds) {
+                                if e.is_valid_timestamp(settings.options.reject_future_seconds, settings.options.reject_past_seconds) {
                                     // Write this to the database.
                                     let submit_event = SubmittedEvent { event: e.clone(), notice_tx: notice_tx.clone(), source_ip: conn.ip().to_string(), origin: client_info.origin.clone(), user_agent: client_info.user_agent.clone()};
                                     event_tx.send(submit_event).await.ok();
